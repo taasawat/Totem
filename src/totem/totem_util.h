@@ -8,6 +8,10 @@
 #ifndef TOTEM_UTIL_H
 #define TOTEM_UTIL_H
 
+// sets number of NUMA nodes,
+// TODO: change the macros to inline function
+#define NUMA_NODES 4
+
 // totem includes
 #include "totem_comdef.h"
 #include "totem_graph.h"

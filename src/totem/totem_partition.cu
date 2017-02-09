@@ -347,6 +347,7 @@ error_t partition_by_sorted_degree(graph_t* graph, int partition_count,
   }
   // Reassign some vertices based off of a given lambda value.
   index = graph->vertex_count - 1;
+  p_offset += (NUMA_NODES - 1); // since we distribute lambda on GPUs only
   for (int pid = 0; pid < partition_count - p_offset; pid++) {
     double assigned = 0;
     while ((assigned / total_elements < lambda) && (index > 0)) {

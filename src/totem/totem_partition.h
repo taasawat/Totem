@@ -19,8 +19,10 @@
  * vertex identifier in a partition's edges array
  * TODO(abdullah): change the macros to constant variables and inline functions
  */
+// changed MAX_LOG_PARTITION_COUNT 2 to 3, since it represents partition into bits,
+// so if value is 2, maximum 4 partitions could be created
 #ifndef MAX_LOG_PARTITION_COUNT
-#define MAX_LOG_PARTITION_COUNT  2
+#define MAX_LOG_PARTITION_COUNT  3
 #endif
 
 /**

@@ -257,7 +257,7 @@ PRIVATE void init_get_platform(int &pcount, int &gpu_count, bool &use_cpu) {
     default:
       assert(false);
   }
-  pcount = use_cpu ? gpu_count + 1 : gpu_count;
+  pcount = use_cpu ? gpu_count + NUMA_NODES : gpu_count; // NUMA_NODES defined in 
 }
 
 PRIVATE void init_get_shares(int pcount, int gpu_count, bool use_cpu,
@@ -267,8 +267,16 @@ PRIVATE void init_get_shares(int pcount, int gpu_count, bool use_cpu,
   // TODO(abdullah): ideally, we would like to split the graph among processors
   // with different shares (e.g., a system with GPUs with different
   // memory capacities).
+  if(context.attr.platform == PLATFORM_CPU || context.attr.platform == PLATFORM_HYBRID) {
+    // dividing cpu share equally among all NUMA nodes	
+    double cpu_par_share = context.attr.cpu_par_share/ (double)NUMA_NODES;
+    // Example: share[6] = {GPU, GPU, CPU0, CPU1, CPU2, CPU3}
+    for (int numa_id = gpu_count; numa_id < pcount; numa_id++) {      
+      shares[numa_id] = cpu_par_share;
+    }
+  }
+
   if (context.attr.platform == PLATFORM_HYBRID) {
-    shares[pcount - 1] = context.attr.cpu_par_share;
     // the rest is divided equally among the GPUs
     double gpu_par_share =
       (1.0 - context.attr.cpu_par_share) / (double)gpu_count;
@@ -290,8 +298,10 @@ PRIVATE void init_get_processors(int pcount, int gpu_count, bool use_cpu,
     processors[gpu_id].id = gpu_id;
   }
   if (use_cpu) {
-    // The last partition is the standard CPU partition.
-    processors[pcount - 1].type = PROCESSOR_CPU;
+    for(int numa_id = gpu_count; numa_id < pcount; numa_id++) {
+      processors[numa_id].type = PROCESSOR_CPU;
+      processors[numa_id].id = numa_id - gpu_count;
+    }
 
     // Make the second to last partition the one which handles singletons.
     if (attr->separate_singletons) {
